@@ -1,9 +1,14 @@
+#пользователь, под которым будет осуществляться установка на серверы
 ansible_user: test_dev
+#пользователь и группа для работы систем мониторинг
 user: victoria
 group: victoria
+#директория для systemd unit
 sysdir: /usr/lib/systemd/system
+#директория c файлами и конфигами
 dir: /opt/monitoring
 
+#имя и пароль пользователя vmauth
 auth_user: test
 auth_pwd: "test"
 
