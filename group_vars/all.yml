@@ -1,0 +1,17 @@
+ansible_user: test_dev
+user: victoria
+group: victoria
+sysdir: /usr/lib/systemd/system
+dir: /opt/monitoring
+
+auth_user: test
+auth_pwd: "test"
+
+vmagent: tvlds-test00001.ru
+vmstorage: tvlds-test00006.ru
+vmselect: tvlds-test00003.ru
+vminsert: tvlds-test00002.ru
+vmauth: tvlds-test00004.ru
+grafana: tvlds-test00005.ru
+
+grafana-server_url: https://dl.grafana.com/oss/release/grafana-11.5.2-1.x86_64.rpm

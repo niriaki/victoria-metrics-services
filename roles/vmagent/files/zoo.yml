@@ -1,0 +1,5 @@
+- labels:
+    origin_prometheus: 'zoo'
+  targets:
+    - tkldq-uamc00003.delta.sbrf.ru:9143
+

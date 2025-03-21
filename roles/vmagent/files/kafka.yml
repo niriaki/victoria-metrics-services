@@ -1,0 +1,6 @@
+- labels:
+    origin_prometheus: 'kafka'
+  targets:
+    - tkldq-uamc00005.delta.sbrf.ru:9308
+    - tkldq-uamc00004.delta.sbrf.ru:9308
+

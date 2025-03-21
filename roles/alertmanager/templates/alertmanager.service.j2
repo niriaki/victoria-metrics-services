@@ -1,0 +1,18 @@
+[Unit]
+Description=Alertmanager Service
+After=network.target
+
+[Service]
+EnvironmentFile=-{{ dir }}/alertmanager/alertmanager
+User={{ user }}
+Group={{ group }}
+Type=simple
+ExecStart={{ dir }}/alertmanager/alertmanager \
+          --config.file={{ dir }}/alertmanager/alertmanager.yml \
+          --storage.path=/vmdata/alertmanager \
+          $ALERTMANAGER_OPTS
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

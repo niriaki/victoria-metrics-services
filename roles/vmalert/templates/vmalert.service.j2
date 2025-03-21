@@ -1,0 +1,25 @@
+[Unit]
+Description=VictoriaMetrics vmalert
+After=network.target
+
+[Service]
+Type=simple
+User={{ user }}
+Group={{ group }}
+
+ExecStart={{ dir }}/vmalert/vmalert-prod \
+  -rule={{ dir }}/vmalert/*.yml \
+  -datasource.url=http://{{ vmselect }}:8481/select/0/prometheus \
+  -remoteWrite.url=http://{{ vminsert }}:8480/insert/0/prometheus \
+  -remoteRead.url=http://{{ vmselect }}:8481/select/0/prometheus \
+  -notifier.url=http://{{ grafana }}:9093
+
+SyslogIdentifier=vmalert
+Restart=always
+PrivateTmp=yes
+ProtectHome=yes
+NoNewPrivileges=yes
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

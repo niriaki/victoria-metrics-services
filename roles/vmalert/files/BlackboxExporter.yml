@@ -1,0 +1,92 @@
+groups:
+  - name: BlackboxExporter
+    rules:
+      - alert: SSLCertExpiring5day
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 5
+        for: 0
+        labels:
+          notification: BlackBox
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "SSL cert expire after 5 days on {{ $labels.target }}"
+          blackbox_instance: "{{ $labels.instance }}"
+          target: "{{ $labels.target }}"
+          module: "{{ $labels.module }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "/d/BlackboxExporter/blackbox-exporter?orgId=1&var-environment={{ $labels.monitor }}&var-target={{ $labels.target }}"
+          alert_description: "Данный алерт указывает на прекращение действия сертификата через 5 дней"
+#end SSLCertExpiring5day
+
+      - alert: SSLCertExpired
+        expr: probe_ssl_earliest_cert_expiry - time() <= 0
+        for: 0
+        labels:
+          notification: BlackBox
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "SSL cert expired on {{ $labels.target }}"
+          blackbox_instance: "{{ $labels.instance }}"
+          target: "{{ $labels.target }}"
+          module: "{{ $labels.module }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "/d/BlackboxExporter/blackbox-exporter?orgId=1&var-environment={{ $labels.monitor }}&var-target={{ $labels.target }}"
+          alert_description: "Данный алерт указывает на прекращение действия сертификата"
+#end SSLCertExpired
+
+      - alert: SSHCheckFailed
+        expr: probe_success{module="blackbox_ssh"} != 1
+        for: 5s
+        labels:
+          notification: BlackBox
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "SSH probe failed on {{ $labels.target }}"
+          blackbox_instance: "{{ $labels.instance }}"
+          target: "{{ $labels.target }}"
+          module: "{{ $labels.module }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "/d/BlackboxExporter/blackbox-exporter?orgId=1&var-environment={{ $labels.monitor }}&var-target={{ $labels.target }}"
+          alert_description: "Данный алерт указывает на неудачную проверку доступности хоста по SSH протоколу"
+#end SSHCheckFailed
+
+      - alert: HTTPCheckFailed
+        expr: probe_success{module=~"blackbox_https_custom_ca|blackbox_https|blackbox_http"} != 1
+        for: 3s
+        labels:
+          notification: BlackBox
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "HTTP(S) probe failed on {{ $labels.target }}"
+          blackbox_instance: "{{ $labels.instance }}"
+          target: "{{ $labels.target }}"
+          module: "{{ $labels.module }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "/d/BlackboxExporter/blackbox-exporter?orgId=1&var-environment={{ $labels.monitor }}&var-target={{ $labels.target }}"
+          alert_description: "Данный алерт указывает на неудачную проверку доступности хоста по HTTP(S) протоколу"
+#end HTTPCheckFailed
+
+      - alert: DNSLookupDuration3Sec
+        expr: probe_dns_lookup_time_seconds >= 3
+        for: 1m
+        labels:
+          notification: BlackBox
+          severity: warning
+          severity_level: 2
+        annotations:
+          blackbox_instance: "{{ $labels.instance }}"
+          target: "{{ $labels.target }}"
+          module: "{{ $labels.module }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          summary: "Long DNS lookup (more 3 sec) on {{ $labels.target }}"
+          grafana: "/d/BlackboxExporter/blackbox-exporter?orgId=1&var-environment={{ $labels.monitor }}&var-target={{ $labels.target }}"
+          alert_description: "Данный алерт указыват на длительную работу запрос в DNS сервер"
+#end DNSLookupDuration3Sec

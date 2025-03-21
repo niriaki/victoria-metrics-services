@@ -1,0 +1,74 @@
+---
+
+
+- name: Install vmagent 
+  become: true
+  hosts: vmagent
+  roles:
+    - vmagent
+
+- name: Install vmstorage 
+  become: true
+  hosts: vmstorage
+  roles:
+    - vmstorage
+
+- name: Install vmselect 
+  become: true
+  hosts: vmselect
+  roles:
+    - vmselect
+
+- name: Install vminsert 
+  become: true
+  hosts: vminsert
+  roles:
+    - vminsert
+
+- name: Install vmalert 
+  become: true
+  hosts: grafana
+  roles:
+    - vmalert
+
+- name: Install alertmanager 
+  become: true
+  hosts: grafana
+  roles:
+    - alertmanager
+
+- name: Install vmauth 
+  become: true
+  hosts: vmauth
+  roles:
+    - vmauth
+
+- name: Install grafana 
+  become: true
+  hosts: grafana
+  roles:
+    - grafana
+
+- name: Install node_exporter 
+  become: true
+  hosts: all_node
+  roles:
+    - node_exporter
+
+- name: Install blackbox_exporter 
+  become: true
+  hosts: all_node
+  roles:
+    - blackbox_exporter
+
+- name: Install zookeeper_exporter 
+  become: true
+  hosts: zoo
+  roles:
+    - zookeeper_exporter
+
+- name: Install kafka_exporter 
+  become: true
+  hosts: kafka
+  roles:
+    - kafka_exporter

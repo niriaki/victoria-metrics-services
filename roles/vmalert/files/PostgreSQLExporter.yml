@@ -1,0 +1,198 @@
+groups:
+  - name: PostgreSQLExporter
+    rules:
+      - alert: PostgreSQLInstanceUp
+        expr: pg_up == 0
+        for: 0
+        labels:
+          notification: PostgreSQLExporter
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Exporter cant connect to PostgreSQL {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "Not ready yet"
+          alert_description: "Данный алерт отображает проблемы подключения Exporter к PostgreSQL для получения метрик"
+#end PostgreSQLInstanceUp
+
+      - alert: PostgreSQLRestarted
+        expr: time() - pg_postmaster_start_time_seconds < 60
+        for: 0
+        labels:
+          notification: PostgreSQLExporter
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "PostgreSQL {{ $labels.instance }} was restarted"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "Not ready yet"
+          alert_description: "Данный алерт указывает на факт перезагрузки инстанса PostgreSQL"
+#end PostgreSQLRestarted
+
+      - alert: PostgreSQLExporterQueriesError
+        expr: pg_exporter_last_scrape_error > 0
+        for: 0
+        labels:
+          notification: PostgreSQLExporter
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "Exporter queries for fetch metrics has error on PostgreSQL {{ $labels.instance }}. Check exporter logs"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "Not ready yet"
+          alert_description: "Данный алерт отображает проблемы выполнения запросов от Exporter к PostgreSQL"
+#end PostgreSQLExporterQueriesError
+
+      - alert: PostgreSQLReplicationLag
+        expr: pg_replication_lag > 600
+        for: 0
+        labels:
+          notification: PostgreSQLExporter
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "PostgreSQL {{ $labels.instance }} has replication lag more than 600 seconds"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "Not ready yet"
+          alert_description: "Данный алерт указывает на факт отставания реплики PostgreSQL от мастера"
+#end PostgreSQLReplicationLag
+
+      - alert: PostgreSQLDeadLocks
+        expr: increase(pg_stat_database_deadlocks[2m]) > 5
+        for: 0
+        labels:
+          notification: PostgreSQLExporter
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "PostgreSQL {{ $labels.instance }} on {{ $labels.datname }} datid: {{ $labels.datid }} has > 5 deadlocks"
+          instance: "{{ $labels.instance }}"
+          datname: "{{ $labels.datname }}"
+          datid: "{{ $labels.datid }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "Not ready yet"
+          alert_description: "Данный алерт указывает наличие блокировок к базе PostgreSQL"
+#end PostgreSQLTooManyConnections#end PostgreSQLReplicationLag
+
+      - alert: PostgreSQLReplicaionSlot
+        expr: pg_replication_slots_active == 0
+        for: 1m
+        labels:
+          notification: PostgreSQLExporter
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "PostgreSQL {{ $labels.instance }} has inactive slot {{ $labels.slot_name }}"
+          instance: "{{ $labels.instance }}"
+          slot_name: "{{ $labels.slot_name }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "Not ready yet"
+          alert_description: "Данный алерт указывает на отсутсвие слотов репликации (replication slots) PostgreSQL"
+#end PostgreSQLReplicaionSlot
+
+      - alert: PostgreSQLRoleChanges
+        expr: pg_ha_is_master and changes(pg_ha_is_master[1m]) > 0
+        for: 1m
+        labels:
+          notification: PostgreSQLExporter
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "PostgreSQL {{ $labels.instance }} has changed role"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "Not ready yet"
+          alert_description: "Данный алерт указывает на смену роли PostgreSQL (master, slave)"
+#end PostgreSQLRoleChanges
+
+      - alert: PostgreSQLBackupStatus
+        expr: (now() - pg_backup_date) > 93600
+        for: 1m
+        labels:
+          notification: PostgreSQLExporter
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "PostgreSQL {{ $labels.instance }} backup was 1 day 2 hour ago"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "Not ready yet"
+          alert_description: "Данный алерт указывает на невыполнение бэкапа PostgreSQL. Возраст бэкапа более 1 дня и 2 часов."
+#end PostgreSQLBackupStatus
+
+      - alert: RelatedPostgreSQLServices
+        expr: node_systemd_unit_state{state="active", name=~"(pgbouncer.service|patroni.service|etcd.service|postgresql.service)"} == 0
+        for: 0
+        labels:
+          notification: PostgreSQLExporter
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "{{ $labels.name }} not running on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          name: "{{ $labels.name }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "Сервис pgbouncer является точкой входа в PostgreSQL для клиентов. Patroni Обеспечивает автоматическое переключение на резервный сервер при сбое ведущего сервера. etcd содержит данные о состоянии кластера"
+#end RelatedPostgreSQLServices
+
+      - alert: PostgreSQLTransactionStatusFailed
+        expr: sum by (cluster, monitor, job) (pg_transaction_status) == 0
+        for: 0
+        labels:
+          notification: PostgreSQLExporter
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "All node in {{ $labels.cluster }} in read-only state."
+          cluster: "{{ $labels.cluster }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "Not ready yet"
+          alert_description: "Данный алерт указывает на невыполнение транзакции в кластере PostgreSQL"
+#end PostgreSQLTransactionStatusFailed
+
+      - alert: PostgreSQLTransactionStatus
+        expr: sum by (cluster, monitor, job) (pg_transaction_status) > 1
+        for: 0
+        labels:
+          notification: PostgreSQLExporter
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "More than one PostgreSQL in a cluster {{ $labels.cluster }} in master mode."
+          cluster: "{{ $labels.cluster }}"
+          monitor: "{{ $labels.monitor }}"
+          job: "{{ $labels.job }}"
+          grafana: "Not ready yet"
+          alert_description: "Более одного PostgreSQL в кластере в режиме master"
+#end PostgreSQLTransactionStatus
+
+      - alert: PostgreSQLEtcdHealth
+        expr: probe_success{module="blackbox_http_etcd_health"} == 0
+        for: 2m
+        labels:
+          notification: PostgreSQLExporter
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Etcd on {{ $labels.instance }} not healthy"
+          monitor: "{{ $labels.monitor }}"
+          instance: "{{ $labels.instance }}"
+          job: "{{ $labels.job }}"
+          grafana: "Not ready yet"
+          alert_description: "Страница с health etcd сервиса недоступна или имеет значение false"
+#end PostgreSQLEtcdHealth

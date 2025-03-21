@@ -1,0 +1,50 @@
+---
+# tasks file for alertmanager
+- name: Stop service alertmanager, if started
+  ansible.builtin.systemd_service:
+    name: alertmanager.service
+    state: stopped
+  ignore_errors: true
+
+- name: Create configs directory
+  file:
+    path: "{{ dir }}/alertmanager"
+    state: directory
+
+- name: Copy alertmanager.yml
+  copy:
+    src: "alertmanager.yml"
+    dest: "{{ dir }}/alertmanager"
+    force: yes
+
+- name: Copy service for alertmanager
+  copy:
+    src: "alertmanager"
+    dest: "{{ dir }}/alertmanager"
+    force: yes
+    mode: 0755
+
+- name: Copy service file for alertmanager
+  ansible.builtin.template:
+    src: "alertmanager.service.j2"
+    dest: "{{ sysdir }}/alertmanager.service"
+    force: yes
+
+- name: Add the user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "{{ dir }}/alertmanager"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Run service alertmanager
+  ansible.builtin.systemd_service:
+    name: alertmanager.service
+    state: started
+    daemon_reload: true
+    enabled: true

@@ -1,0 +1,19 @@
+[Unit]
+Description=vmauth
+After=network.target
+
+[Service]
+Type=simple
+User={{ user }}
+Group={{ group }}
+StartLimitBurst=5
+StartLimitInterval=0
+Restart=on-failure
+RestartSec=1
+ExecStart={{ dir }}/vmauth/vmauth-prod -auth.config={{ dir }}/vmauth/vmauth-config.yml -tls -tlsKeyFile={{ dir }}/vmauth/vmauth.key -tlsCertFile={{ dir }}/vmauth/vmauth.pem -httpListenAddr=0.0.0.0:8427
+ExecStop=/bin/kill -s SIGTERM $MAINPID
+LimitNOFILE=65536
+LimitNPROC=32000
+
+[Install]
+WantedBy=multi-user.target

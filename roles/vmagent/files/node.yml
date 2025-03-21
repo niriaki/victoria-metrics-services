@@ -1,0 +1,13 @@
+- labels:
+    origin_prometheus: 'node'
+  targets:
+    - tvlds-uamc00001.delta.sbrf.ru:9100
+    - tvlds-uamc00002.delta.sbrf.ru:9100
+    - tvlds-uamc00003.delta.sbrf.ru:9100
+    - tvlds-uamc00004.delta.sbrf.ru:9100
+    - tvlds-uamc00005.delta.sbrf.ru:9100
+    - tvlds-uamc00006.delta.sbrf.ru:9100
+    - tkldq-uamc00003.delta.sbrf.ru:9100
+    - tkldq-uamc00004.delta.sbrf.ru:9100
+    - tkldq-uamc00005.delta.sbrf.ru:9100
+

@@ -1,0 +1,127 @@
+groups:
+    - name: VictoriaMetrics
+      rules:
+
+###############
+### VMAGENT ###
+###############
+
+        - alert: ErrorHTTPRequestStorage
+          expr: vmagent_remotewrite_packets_dropped_total > 0
+          for: 2m
+          labels:
+            notification: VictoriaMetrics
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "vmagent {{ $labels.instance}} HTTP request to the storage {{ $labels.url}} failed"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "Not Ready"
+            alert_description: "Ошибка HTTP запроса vmagent к хранилищу"
+  #end ErrorHTTPRequestStorage
+
+        - alert: CountTargetsDown
+          expr: vm_promscrape_targets{status="down",job!~".*common"} > 0
+          for: 0
+          labels:
+            notification: VictoriaMetrics
+            severity: warning
+            severity_level: 2
+          annotations:
+            summary: "Targets {{ $labels.type }} down: {{ $labels.value }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "Not Ready"
+            alert_description: "Количество недоступных таргетов"
+  #end CountTargetsDown
+
+        - alert: TotalScrapesSkippedByLimit
+          expr: vm_promscrape_scrapes_skipped_by_sample_limit_total > 0
+          for: 0
+          labels:
+            notification: VictoriaMetrics
+            severity: warning
+            severity_level: 2
+          annotations:
+            summary: "Scrapes skipped by sample limit total: {{ $labels.value }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "Not Ready"
+            alert_description: "Количество скрейпов, пропущенных по ограничению выборки"
+  #end TotalScrapesSkippedByLimit
+
+#################
+### VMSTORAGE ###
+#################
+
+        - alert: StorageReadOnly
+          expr: vm_storage_is_read_only != 0
+          for: 0
+          labels:
+            notification: VictoriaMetrics
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "vmstorage is read only"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "Not Ready"
+            alert_description: "База данных vmstorage только для чтения"
+  #end StorageReadOnly
+
+        - alert: AddrowsCapacity
+          expr: max(vm_concurrent_addrows_capacity{job!~".*common"}) by (instance, monitor, job) - sum(avg_over_time(vm_concurrent_addrows_current{job!~".*common"}[1m])) by (instance, monitor, job) <= 0
+          for: 0
+          labels:
+            notification: VictoriaMetrics
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "Insufficient CPU for vmstorage inserts: {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/VictoriaMetrics/victoriametrics-cluster?orgId=1&var-instance={{ $labels.instance }}&from=now-2d&to=now&editPanel=133"
+            alert_description: "Недостаточное количество CPU для вставок"
+  #end AddrowsCapacity
+
+        - alert: SlowRowInserts
+          expr: sum(rate(vm_slow_row_inserts_total{job!~".*common"})) by (monitor, instance, job) / sum(rate(vm_rows_inserted_total{job!~".*common"})) by (monitor, instance, job) > 10
+          for: 0
+          labels:
+            notification: VictoriaMetrics
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "Insufficient amount of RAM for vmstorage inserts: {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/VictoriaMetrics/victoriametrics-cluster?orgId=1&from=now-2d&to=now&viewPanel=108"
+            alert_description: "Недостаточное количество RAM для вставок"
+  #end SlowRowInserts
+
+################
+### VMINSERT ###
+################
+
+        - alert: VmstorageIsNotReachable
+          expr: vm_rpc_vmstorage_is_reachable == 0
+          for: 0
+          labels:
+            notification: VictoriaMetrics
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "vmstorage is not reachable for vminsert: {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/VictoriaMetrics/victoriametrics-cluster?orgId=1&from=now-2d&to=now&viewPanel=114"
+            alert_description: "Хранилище vmstorage недоступно для vminsert"
+  #end VmstorageIsNotReachable

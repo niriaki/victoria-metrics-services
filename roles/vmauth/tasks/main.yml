@@ -1,0 +1,64 @@
+---
+# tasks file for vmauth
+- name: Stop service vmauth, if started
+  ansible.builtin.systemd_service:
+    name: vmauth.service
+    state: stopped
+  ignore_errors: true
+
+- name: Add group victoria
+  ansible.builtin.group:
+    name: "{{ group }}"
+    state: present
+
+- name: Add the user victoria
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Create configs directory
+  file:
+    path: "{{ dir }}/vmauth"
+    state: directory
+
+- name: Copy service for vmauth
+  copy:
+    src: "vmauth-prod"
+    dest: "{{ dir }}/vmauth"
+    force: yes
+    mode: 0755
+
+- name: Copy cert for vmauth
+  copy:
+    src: "files/{{item}}"
+    dest: "{{dir}}/vmauth"
+    force: yes
+  loop:
+    - vmauth.key
+    - vmauth.pem
+
+- name: Copy service file for vmauth
+  ansible.builtin.template:
+    src: "vmauth-config.j2"
+    dest: "{{ dir }}/vmauth/vmauth-config.yml"
+    force: yes
+
+- name: Copy config file for vmauth
+  ansible.builtin.template:
+    src: "vmauth.service.j2"
+    dest: "{{ sysdir }}/vmauth.service"
+    force: yes
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "{{ dir }}/vmauth"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Run service vmauth
+  ansible.builtin.systemd_service:
+    name: vmauth.service
+    state: started
+    daemon_reload: true
+    enabled: true

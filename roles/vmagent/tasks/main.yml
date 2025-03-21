@@ -1,0 +1,77 @@
+---
+# tasks file for vmagent
+- name: Stop service vmagent, if started
+  ansible.builtin.systemd_service:
+    name: vmagent.service
+    state: stopped
+  ignore_errors: true
+
+- name: Create configs directory
+  file:
+    path: "{{ dir }}/vmagent"
+    state: directory
+
+- name: Create configs data directory
+  file:
+    path: /vmadata/vmagent-remotewrite-data
+    state: directory
+
+- name: Create configs data directory
+  file:
+    path: "{{ dir }}/vmagent/file_sd"
+    state: directory
+
+- name: Copy prometheus.yml for vmagent
+  template:
+    src: prometheus.yml.j2
+    dest: "{{dir}}/vmagent/prometheus.yml"
+    force: yes
+
+- name: Copy scrape for vmagent
+  copy:
+    src: "files/{{item}}"
+    dest: "{{dir}}/vmagent/file_sd"
+    force: yes
+  loop:
+    - jmx.yml
+    - kafka.yml
+    - node.yml
+
+- name: Copy service for vmagent
+  copy:
+    src: "vmagent-prod"
+    dest: "{{ dir }}/vmagent"
+    force: yes
+    mode: 0755
+
+- name: Copy service file for vmagent
+  ansible.builtin.template:
+    src: "vmagent.service.j2"
+    dest: "{{ sysdir }}/vmagent.service"
+    force: yes
+
+- name: Add the user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "{{ dir }}/vmagent"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "/vmdata"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Run service vmagent
+  ansible.builtin.systemd_service:
+    name: vmagent.service
+    state: started
+    daemon_reload: true
+    enabled: true

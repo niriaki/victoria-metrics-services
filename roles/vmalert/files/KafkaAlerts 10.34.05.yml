@@ -1,0 +1,119 @@
+groups:
+  - name: KafkaAlerts
+    rules:
+      - alert: ActiveControllerBiggerThan1
+        expr: sum by (cluster, monitor,job) (kafka_controller_kafkacontroller_activecontrollercount) > 1
+        for: 0
+        labels:
+          notification: KafkaAlerts
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "Active cluster controllers count bigger than 1 on cluster {{ $labels.cluster }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          instance: "{{ $labels.instance }}"
+          job: "{{ $labels.job }}"
+          grafana: "/d/jwPKIsniz/kafka-exporter-overview?orgId=1&var-monitor={{ $labels.monitor }}&var-instance={{ $labels.instance }}&var-topic=All&var-db=Prometheus%20AlertManager%20Common"
+          alert_description: "В кластере {{ $labels.cluster }} активно более одного контроллера"
+#end ActiveControllerBiggerThan1
+
+      - alert: NoActiveControllerInCluster
+        expr: sum by (cluster, monitor,job) (kafka_controller_kafkacontroller_activecontrollercount) < 1
+        for: 0
+        labels:
+          notification: KafkaAlerts
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "No Active controllers in cluster {{ $labels.cluster }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          instance: "{{ $labels.instance }}"
+          job: "{{ $labels.job }}"
+          grafana: "/d/jwPKIsniz/kafka-exporter-overview?orgId=1&var-monitor={{ $labels.monitor }}&var-instance={{ $labels.instance }}&var-topic=All&var-db=Prometheus%20AlertManager%20Common"
+          alert_description: "В кластере {{ $labels.cluster }} нет активных контроллеров"
+#end NoActiveControllerInCluster
+
+      - alert: UncleanLeatherElectionRate
+        expr: sum by (cluster, monitor,job) (kafka_controller_controllerstats_uncleanleaderelections_total) >= 2
+        for: 0
+        labels:
+          notification: KafkaAlerts
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Unclean leather election count is 2 in cluster {{ $labels.cluster }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          instance: "{{ $labels.instance }}"
+          job: "{{ $labels.job }}"
+          grafana: "/d/jwPKIsniz/kafka-exporter-overview?orgId=1&var-monitor={{ $labels.monitor }}&var-instance={{ $labels.instance }}&var-topic=All&var-db=Prometheus%20AlertManager%20Common"
+          alert_description: "В кластере {{ $labels.cluster }} было перевыбрано выбрано более 2х несинхронизованных лидеров партиции"
+#end UncleanLeatherElectionRate
+
+      - alert: PreferredImbalanceReplicas
+        expr: sum by (cluster, monitor,job) (kafka_controller_kafkacontroller_preferredreplicaimbalancecount) > 0
+        for: 0
+        labels:
+          notification: KafkaAlerts
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Imbalance replicas in cluster {{ $labels.cluster }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          instance: "{{ $labels.instance }}"
+          job: "{{ $labels.job }}"
+          grafana: "/d/jwPKIsniz/kafka-exporter-overview?orgId=1&var-monitor={{ $labels.monitor }}&var-instance={{ $labels.instance }}&var-topic=All&var-db=Prometheus%20AlertManager%20Common"
+          alert_description: "Дисбаланс реплики в кластере {{ $labels.cluster }}"
+#end PreferredImbalanceReplicas
+
+      - alert: OfflinePartitions
+        expr: sum by (cluster, monitor) (kafka_controller_kafkacontroller_offlinepartitionscount) > 0
+        for: 0
+        labels:
+          notification: KafkaAlerts
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Partitions is offline in cluster {{ $labels.cluster }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          instance: "{{ $labels.instance }}"
+          grafana: "/d/jwPKIsniz/kafka-exporter-overview?orgId=1&var-monitor={{ $labels.monitor }}&var-instance={{ $labels.instance }}&var-topic=All&var-db=Prometheus%20AlertManager%20Common"
+          alert_description: "Некоторые партиции находятся в оффлайн в кластере {{ $labels.cluster }}"
+#end OfflinePartitions
+
+      
+      - alert: UnderReplicatePartitions
+        expr: sum by (cluster, monitor) (kafka_server_replicamanager_underreplicatedpartitions) > 0
+        for: 0
+        labels:
+          notification: KafkaAlerts
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Partitions is replicate in cluster {{ $labels.cluster }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          instance: "{{ $labels.instance }}"
+          grafana: "/d/jwPKIsniz/kafka-exporter-overview?orgId=1&var-monitor={{ $labels.monitor }}&var-instance={{ $labels.instance }}&var-topic=All&var-db=Prometheus%20AlertManager%20Common"
+          alert_description: "Количество разделов, у которых число синхронизированных реплик (in-sync replicas, ISR) меньше фактора репликации в кластере {{ $labels.cluster }}"
+#end UnderReplicatePartitions
+
+      - alert: UnderMinISRPartitions
+        expr: sum by (cluster, monitor) (kafka_cluster_partition_underminisr) > 0
+        for: 0
+        labels:
+          notification: KafkaAlerts
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Under min ISR partitions in cluster {{ $labels.cluster }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          instance: "{{ $labels.instance }}"
+          grafana: "/d/jwPKIsniz/kafka-exporter-overview?orgId=1&var-monitor={{ $labels.monitor }}&var-instance={{ $labels.instance }}&var-topic=All&var-db=Prometheus%20AlertManager%20Common"
+          alert_description: "Количество разделов, у которых число синхронизированных реплик меньше минимального допустимого значения, указанного в настройках в кластере {{ $labels.cluster }}"
+#end UnderMinISRPartitions

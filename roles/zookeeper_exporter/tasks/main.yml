@@ -1,0 +1,44 @@
+---
+# tasks file for zookeeper_exporter
+- name: Stop service zookeeper_exporter, if started
+  ansible.builtin.systemd_service:
+    name: zookeeper_exporter.service
+    state: stopped
+  ignore_errors: true
+
+- name: Create configs directory
+  file:
+    path: "{{ dir }}/zookeeper_exporter"
+    state: directory
+
+- name: Copy service for zookeeper_exporter
+  copy:
+    src: "zookeeper_exporter"
+    dest: "{{ dir }}/zookeeper_exporter"
+    force: yes
+    mode: 0755
+
+- name: Copy service file for zookeeper_exporter
+  ansible.builtin.template:
+    src: "zookeeper_exporter.service.j2"
+    dest: "{{ sysdir }}/zookeeper_exporter.service"
+    force: yes
+
+- name: Add the user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "{{ dir }}/zookeeper_exporter"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Run service zookeeper_exporter
+  ansible.builtin.systemd_service:
+    name: zookeeper_exporter.service
+    state: started
+    daemon_reload: true
+    enabled: true

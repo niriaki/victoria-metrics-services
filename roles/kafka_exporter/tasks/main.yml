@@ -1,0 +1,44 @@
+---
+# tasks file for kafka_exporter
+- name: Stop service kafka_exporter, if started
+  ansible.builtin.systemd_service:
+    name: kafka_exporter.service
+    state: stopped
+  ignore_errors: true
+
+- name: Create configs directory
+  file:
+    path: "{{ dir }}/kafka_exporter"
+    state: directory
+
+- name: Copy service for kafka_exporter
+  copy:
+    src: "kafka_exporter"
+    dest: "{{ dir }}/kafka_exporter"
+    force: yes
+    mode: 0755
+
+- name: Copy service file for kafka_exporter
+  ansible.builtin.template:
+    src: "kafka_exporter.service.j2"
+    dest: "{{ sysdir }}/kafka_exporter.service"
+    force: yes
+
+- name: Add the user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "{{ dir }}/kafka_exporter"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Run service kafka_exporter
+  ansible.builtin.systemd_service:
+    name: kafka_exporter.service
+    state: started
+    daemon_reload: true
+    enabled: true

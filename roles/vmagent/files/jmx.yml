@@ -1,0 +1,6 @@
+- labels:
+    origin_prometheus: 'jmx'
+  targets:
+    - tkldq-uamc00005.delta.sbrf.ru:7020
+    - tkldq-uamc00004.delta.sbrf.ru:7020
+

@@ -1,0 +1,28 @@
+users:
+- username: {{ auth_user }}
+  password: {{ auth_pwd }}
+  url_map:
+  - src_paths:
+    - /vmui.*
+    url_prefix:
+    - http://{{ vmselect }}:8481/select/0
+  - src_paths:
+    - /api/v1/rules
+    - /api/v1/alerts.*
+    - /flags
+    - /metrics
+    - /-/reload
+    url_prefix:
+    - http://{{ grafana }}:8880
+  - src_paths:
+    - /targets
+    - /static/css/bootstrap.min.css
+    url_prefix:
+    - http://{{ vmagent }}:8429
+  - src_paths:
+    - /alerts
+    - /alerts/.*
+    - /script.js
+    drop_src_path_prefix_parts: 1
+    url_prefix:
+    - http://{{ grafana }}:9093

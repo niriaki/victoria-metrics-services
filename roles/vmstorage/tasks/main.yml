@@ -1,0 +1,51 @@
+---
+# tasks file for vmstorage
+- name: Stop service vmstorage, if started
+  ansible.builtin.systemd_service:
+    name: vmstorage.service
+    state: stopped
+  ignore_errors: true
+
+- name: Add the user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Create configs directory
+  file:
+    path: "{{ dir }}/vmstorage"
+    state: directory
+
+- name: Copy service for vmstorage
+  copy:
+    src: "vmstorage-prod"
+    dest: "{{ dir }}/vmstorage"
+    force: yes
+    mode: 0755
+
+- name: Copy service file for vmstorage
+  ansible.builtin.template:
+    src: "vmstorage.service.j2"
+    dest: "{{ sysdir }}/vmstorage.service"
+    force: yes
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "{{ dir }}/vmstorage"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "/vmdata"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Run service vmstorage
+  ansible.builtin.systemd_service:
+    name: vmstorage.service
+    state: started
+    daemon_reload: true
+    enabled: true

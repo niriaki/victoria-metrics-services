@@ -1,0 +1,58 @@
+---
+# tasks file for vmselect
+- name: Stop service vmselect, if started
+  ansible.builtin.systemd_service:
+    name: vmselect.service
+    state: stopped
+  ignore_errors: true
+
+- name: Add the user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Create configs directory
+  file:
+    path: "{{ dir }}/vmselect"
+    state: directory
+
+- name: Create configs directory
+  file:
+    path: "/vmdata/victoria-cache"
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Copy service for vmselect
+  copy:
+    src: "vmselect-prod"
+    dest: "{{ dir }}/vmselect"
+    force: yes
+    mode: 0755
+
+- name: Copy service file for vmselect
+  ansible.builtin.template:
+    src: "vmselect.service.j2"
+    dest: "{{ sysdir }}/vmselect.service"
+    force: yes
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "{{ dir }}/vmselect"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "/vmdata"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Run service vmselect
+  ansible.builtin.systemd_service:
+    name: vmselect.service
+    state: started
+    daemon_reload: true
+    enabled: true

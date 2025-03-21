@@ -1,0 +1,44 @@
+---
+# tasks file for vminsert
+- name: Stop service vminsert, if started
+  ansible.builtin.systemd_service:
+    name: vminsert.service
+    state: stopped
+  ignore_errors: true
+
+- name: Create configs directory
+  file:
+    path: "{{ dir }}/vminsert"
+    state: directory
+
+- name: Copy service for vminsert
+  copy:
+    src: "vminsert-prod"
+    dest: "{{ dir }}/vminsert"
+    force: yes
+    mode: 0755
+
+- name: Copy service file for vminsert
+  ansible.builtin.template:
+    src: "vminsert.service.j2"
+    dest: "{{ sysdir }}/vminsert.service"
+    force: yes
+
+- name: Add the user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "{{ dir }}/vminsert"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Run service vminsert
+  ansible.builtin.systemd_service:
+    name: vminsert.service
+    state: started
+    daemon_reload: true
+    enabled: true

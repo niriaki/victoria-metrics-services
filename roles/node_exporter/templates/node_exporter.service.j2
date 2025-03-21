@@ -1,0 +1,13 @@
+[Unit]
+Description=Prometheus node exporter
+After=network.target auditd.service
+
+[Service]
+User={{ user }}
+Group={{ group }}
+Type=simple
+ExecStart={{ dir }}/node_exporter/node_exporter --collector.systemd
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

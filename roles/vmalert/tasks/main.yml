@@ -1,0 +1,57 @@
+---
+# tasks file for vmalert
+- name: Stop service vmalert, if started
+  ansible.builtin.systemd_service:
+    name: vmalert.service
+    state: stopped
+  ignore_errors: true
+
+- name: Create configs directory
+  file:
+    path: "{{ dir }}/vmalert"
+    state: directory
+
+- name: Copy alerts for vmalert
+  copy:
+    src: "files/{{item}}"
+    dest: "{{dir}}/vmalert"
+    force: yes
+  loop:
+    - KafkaAlerts.yml
+    - NodeExporter.yml
+    - VictoriaMetrics.yml
+    - BlackboxExporter.yml
+    - KubernetesOpenShift.yml
+    - PostgreSQLExporter.yml
+
+- name: Copy service for vmalert
+  copy:
+    src: "vmalert-prod"
+    dest: "{{ dir }}/vmalert"
+    force: yes
+    mode: 0755
+
+- name: Copy service file for vmalert
+  ansible.builtin.template:
+    src: "vmalert.service.j2"
+    dest: "{{ sysdir }}/vmalert.service"
+    force: yes
+
+- name: Add the user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "{{ dir }}/vmalert"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Run service vmalert
+  ansible.builtin.systemd_service:
+    name: vmalert.service
+    state: started
+    daemon_reload: true
+    enabled: true

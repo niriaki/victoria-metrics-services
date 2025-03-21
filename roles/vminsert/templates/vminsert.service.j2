@@ -1,0 +1,21 @@
+[Unit]
+Description=VictoriaMetrics-insert
+After=network.target
+
+[Service]
+Type=simple
+User={{ user }}
+Group={{ group }}
+StartLimitBurst=5
+StartLimitInterval=0
+Restart=on-failure
+RestartSec=1
+ExecStart={{ dir }}/vminsert/vminsert-prod  -memory.allowedPercent=60 -storageNode={{ vmstorage }}:8400 -replicationFactor=1
+ExecStop=/bin/kill -s SIGTERM $MAINPID
+
+PrivateTmp=yes
+ProtectHome=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

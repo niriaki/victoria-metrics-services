@@ -1,0 +1,844 @@
+groups:
+  - name: NodeKubernetesOpenShift
+    rules:
+      - alert: CPUUtilizationByMode90Percent
+        expr: (avg by(instance, mode, monitor) (rate(node_cpu_seconds_total{mode!~"(idle|iowait)", namespace!=""}[2m])) * 100) > 90
+        for: 10m
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "CPU Util by {{ $labels.mode }} > 90% on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "Данный алерт указывает на утилизацию CPU только Linux OS<br><br>Вариации mode:<br>user - потребление программами пространства пользователя<br>system - потребление ресурсов процессора ядром<br>iowait - затраты на ожидание ввода/вывода<br>softirq - ресурсы, потраченные на программные прерывания<br>steal - процессорные время недополученное от гипервизора<br>nice - потребление ресурсов в процентах программами в пространстве пользователя с повышенным приоритетом<br>irq - ресурсы, потраченные на прерывания для работы с аппаратным обеспечением"
+#end CPUUtilizationByMode90Percent
+
+      - alert: CPUUtilizationByMode75Percent
+        expr: 90 > (avg by (instance, mode, monitor) (rate(node_cpu_seconds_total{mode!~"(idle|iowait)", namespace!=""}[2m])) * 100) > 75
+        for: 10m
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "CPU Util by {{ $labels.mode }} > 75% on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "Данный алерт указывает на утилизацию CPU только Linux OS<br><br>Вариации mode:<br>user - потребление программами пространства пользователя<br>system - потребление ресурсов процессора ядром<br>iowait - затраты на ожидание ввода/вывода<br>softirq - ресурсы, потраченные на программные прерывания<br>steal - процессорные время недополученное от гипервизора<br>nice - потребление ресурсов в процентах программами в пространстве пользователя с повышенным приоритетом<br>irq - ресурсы, потраченные на прерывания для работы с аппаратным обеспечением"
+
+#end CPUUtilizationByMode75Percent
+
+      - alert: CPUUtilizationIowat30Percent
+        expr: (avg by(instance, mode, monitor) (rate(node_cpu_seconds_total{mode="iowait", namespace!=""}[2m])) * 100) > 30
+        for: 5m
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "CPU Util by IOWAIT > 30% on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "Данный алерт указывает на утилизацию CPU только Linux OS в рамках iowait - затрат на ожидание ввода/вывода"
+#end CPUUtilizationIowat30Percent
+
+      - alert: CPUUtilizationIowat10Percent
+        expr: 30 > (avg by (instance, mode, monitor) (rate(node_cpu_seconds_total{mode="iowait", namespace!=""}[2m])) * 100) > 10
+        for: 10m
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "CPU Util by IOWAIT > 10% on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "Данный алерт указывает на утилизацию CPU только Linux OS в рамках iowait - затрат на ожидание ввода/вывода"
+
+#end CPUUtilizationIowat10Percent
+
+      - alert: MemoryUtiliztion95PercentAndLess512MbOrLess512Mb
+        expr: (node_memory_MemAvailable_bytes{namespace!=""} / node_memory_MemTotal_bytes{namespace!=""} * 100 - 100 ) * -1 > 95 AND (node_memory_MemAvailable_bytes{namespace!=""} < 536870912) OR (node_memory_MemAvailable_bytes{namespace!=""} < 536870912)
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "RAM Util > 95% and RAM FREE < 512Mb on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "Утилизация RAM"
+#end MemoryUtiliztion95PercentAndLess512Mb
+
+      # - alert: MemoryUtiliztion90Percent
+      #   expr: (95 > (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 - 100 ) * -1 > 90) and ((node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 - 100 ) * -1 < 95 AND (node_memory_MemAvailable_bytes > 536870912) )
+      #   for: 5m
+      #   labels:
+      #     notification: KubernetesOpenShift
+      #     severity: warning
+      #     severity_level: 2
+      #   annotations:
+      #     summary: "RAM Util > 90% on {{ $labels.instance }}"
+      #     instance: "{{ $labels.instance }}"
+      #     monitor: "{{ $labels.monitor }}"
+      #     grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+      #     alert_description: "Утилизация RAM"
+#end MemoryUtiliztion90Percent
+
+      - alert: SWAPUtiliztion60Percent
+        expr: (node_memory_SwapFree_bytes{namespace!=""} / node_memory_SwapTotal_bytes{namespace!=""} * 100 - 100 ) * -1 > 60
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "SWAP Util > 60% on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "SWAP - файл подкачки. Обычно используется ОС, а также ПО в случае нехватки оперативной памяти. Критично влияет на производительность."
+#end SWAPUtiliztion60Percent
+
+      - alert: SWAPUtiliztion30Percent
+        expr: 60 > ( node_memory_SwapFree_bytes{namespace!=""} / node_memory_SwapTotal_bytes{namespace!=""} * 100 - 100 ) * -1 > 30
+        for: 1m
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "SWAP Util > 30% on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "SWAP - файл подкачки. Обычно используется ОС, а также ПО в случае нехватки оперативной памяти. Критично влияет на производительность."
+#end SWAPUtiliztion30Percent
+
+      - alert: InodeUtiliztion70Percent
+        expr: (node_filesystem_files_free{namespace!=""} / node_filesystem_files{namespace!=""} * 100 - 100 ) * -1 > 70
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Inodes Util > 70% {{ $labels.mountpoint }} on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          device: "{{ $labels.device }}"
+          mountpoint: "{{ $labels.mountpoint }}"
+          alert_description: "При максимальной утилизации inodes в точке монтирования в файловой системе невозможно создать новый файл, подключение по сети, записать в файл, etc"
+#end InodeUtiliztion70Percent
+
+      - alert: InodeUtiliztion50Percent
+        expr: 70 > (node_filesystem_files_free{namespace!=""} / node_filesystem_files{namespace!=""} * 100 - 100 ) * -1 > 50
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "Inodes Util > 50% {{ $labels.mountpoint }} on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          mountpoint: "{{ $labels.mountpoint }}"
+          alert_description: "При максимальной утилизации inodes в точке монтирования в файловой системе невозможно создать новый файл, подключение по сети, записать в файл, etc"
+#end InodeUtiliztion50Percent
+
+      - alert: MountpointSpaceUtiliztion90PercentAndLess10GB
+        expr: min((node_filesystem_avail_bytes{namespace!=""} / node_filesystem_size_bytes{namespace!=""} * 100 - 100 ) * -1) by (instance, mountpoint, monitor) >= 90 and min(node_filesystem_avail_bytes{namespace!=""}) by (instance, mountpoint, monitor) <= 10737418240
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Free space < 10% and < 10Gb {{ $labels.mountpoint }} ({{ $labels.device }}) on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          device: "{{ $labels.device }}"
+          mountpoint: "{{ $labels.mountpoint }}"
+          alert_description: "Утилизация дискового пространства в разрезе точки монтирования"
+#end MountpointSpaceUtiliztion90PercentAndLess10GB
+
+      - alert: MountpointSpaceUtiliztion85Percent
+        expr: min((node_filesystem_avail_bytes{namespace!=""} / node_filesystem_size_bytes{namespace!=""} * 100 - 100 ) * -1) by (instance, mountpoint, monitor) > 85 and min(node_filesystem_avail_bytes{namespace!=""}) by (instance, mountpoint, monitor) > 10737418240
+        for: 5m
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "Free space < 15% {{ $labels.mountpoint }} ({{ $labels.device }}) on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          device: "{{ $labels.device }}"
+          mountpoint: "{{ $labels.mountpoint }}"
+          alert_description: "Утилизация дискового пространства в разрезе точки монтирования"
+#end MountpointSpaceUtiliztion85Percent
+
+      - alert: PullNodeExporterStatus
+        expr: up{job="node", namespace!=""} == 0
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "NodeExpoter unreachable on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "Данный алерт имеет значение 1 - успешный сбор метрик и 0 - неуспешный сбор метрик с instance"
+#end PullNodeExporterStatus
+
+      - alert: LoadAverage580Percent
+        expr: max(node_load5) by (instance, monitor, job) / count(node_schedstat_timeslices_total{namespace!=""}) by (instance, monitor, job) * 100 > 80
+        for: 2m
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Load Average > 80% by CPU count on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "Данный алерт показывает метрику load average в разрезе количества CPU. Так как Load Average - это комплексная метрика средней загрузки системы (CPU, RAM, Storage, Network)<br>Бывают случаи, когда CPU не утилизирован, а дисковая подсистема утилизирована на 100% и Load Average покажет эту нагрузку"
+#end LoadAverage580Percent
+
+      - alert: LoadAverage550Percent
+        expr: 50 < max(node_load5) by (instance, monitor, job) / count(node_schedstat_timeslices_total{namespace!=""}) by (instance, monitor, job) * 100 < 80
+        for: 10m
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "Load Average > 50% by CPU count on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "Данный алерт показывает метрику load average в разрезе количества CPU. Так как Load Average - это комплексная метрика средней загрузки системы (CPU, RAM, Storage, Network)<br>Бывают случаи, когда CPU не утилизирован, а дисковая подсистема утилизирована на 100% и Load Average покажет эту нагрузку"
+#end LoadAverage550Percent
+
+      - alert: NodeRestarted
+        expr: (node_time_seconds{namespace!=""} - node_boot_time_seconds{namespace!=""}) < 300
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "{{ $labels.instance }} was restarted"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "Данные алерт отображает факт перезагрузки ОС"
+#end NodeRestarted
+
+      - alert: HostClockNotSynchronising
+        expr: min_over_time(node_timex_sync_status{namespace!=""}[1m]) == 0 and node_timex_maxerror_seconds{namespace!=""} >= 16
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "Host clock not synchronising on {{ $labels.instance }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+          alert_description: "Данный алерт отображает статус синхронизации времени в ОС"
+#end HostClockNotSynchronising
+
+  - name: GeneralKubernetesOpenShift
+    rules:
+      - alert: NodeNotReady
+        expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 3m
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Node {{ $labels.node }} is not Ready"
+          namespace: "{{ $labels.namespace }}"
+          instance: "{{ $labels.node }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на отсутствие готовности ноды начать работу в кластере"
+#end NodeNotReady
+
+      - alert: NodeMemoryPressure
+        expr: kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Node {{ $labels.node }} in MemoryPressure condition"
+          namespace: "{{ $labels.namespace }}"
+          instance: "{{ $labels.node }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на недостаток оперативной памяти у ноды для обслуживания POD и начинает переезд PODов на другие ноды"
+#end NodeMemoryPressure
+
+      - alert: NodeDiskPressure
+        expr: kube_node_status_condition{condition="DiskPressure",status="true"} == 1
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Node {{ $labels.node }} in DiskPressure condition"
+          namespace: "{{ $labels.namespace }}"
+          instance: "{{ $labels.node }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на недостаток свободного места или inodes у ноды для обслуживания POD и начинает переезд POD'ов на другие ноды"
+#end NodeDiskPressure
+
+      - alert: NodePIDPressure
+        expr: kube_node_status_condition{condition="PIDPressure",status="true"} == 1
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Node {{ $labels.node }} in PIDPressure condition"
+          namespace: "{{ $labels.namespace }}"
+          instance: "{{ $labels.node }}"
+          monitor: "{{ $labels.monitor }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на большое количество запущенных процессов, что приводит к деградации обслуживания PODи начинает переезд POD'ов на другие ноды"
+#end NodePIDPressure
+
+      - alert: NodeNetworkUnavailable
+        expr: kube_node_status_condition{condition="NetworkUnavailable",status="true"} == 1
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "Node {{ $labels.node }} in NetworkUnavailable condition"
+          namespace: "{{ $labels.namespace }}"
+          instance: "{{ $labels.node }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает некорректную настройку сети для ноды"
+#end NodeNetworkUnavailable
+
+      - alert: NodeCapacity90Percent
+        expr: sum by(node, monitor) (max by(node,pod,namespace)(0 * kube_pod_info{pod_template_hash=""}) + on(pod, namespace) group_right(node) kube_pod_status_phase{phase="Running"}) / sum by (node, monitor) (kube_node_status_allocatable{resource="pods"}) * 100 > 90
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "Node {{ $labels.node }} has < 10% capacity by POD allocation"
+          namespace: "{{ $labels.namespace }}"
+          instance: "{{ $labels.node }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на недостаток емкости ноды в рамках размещения подов, менее 10% от kube_node_status_allocatable"
+#end NodeCapacity90Percent
+
+# Только для Common Kubernetes PD15
+#       - alert: PVCPendingPhase
+#         expr: kube_persistentvolumeclaim_status_phase{phase="Pending"} == 1
+#         for: 2m
+#         labels:
+#           notification: KubernetesOpenShift
+#           severity: warning
+#           severity_level: 2
+#         annotations:
+#           summary: "PVC {{ $labels.persistentvolumeclaim }} in Pending phase more than 2 minutes on ns: {{ $labels.namespace }}"
+#           namespace: "{{ $labels.namespace }}"
+#           pvc: "{{ $labels.persistentvolumeclaim }}"
+#           monitor: "{{ $labels.monitor }}"
+#           cluster: "{{ $labels.cluster }}"
+#           #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+#           alert_description: "Данный алерт указывает на задержку выделения volume (PVC)"
+# #end PVCPendingPhase
+
+      - alert: PVCUtil85Percent
+        expr: 10 > kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes * 100 < 15
+        for: 2m
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "PVC {{ $labels.persistentvolumeclaim }} Util > 85% on {{ $labels.node }} on ns: {{ $labels.namespace }}"
+          namespace: "{{ $labels.namespace }}"
+          pvc: "{{ $labels.persistentvolumeclaim }}"
+          instance: "{{ $labels.node }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на 85% утилизацию запрошенного volume (PVC)"
+#end PVCUtil85Percent
+
+      - alert: PVCUtil90Percent
+        expr: kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes * 100 < 10
+        for: 2m
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "PVC {{ $labels.persistentvolumeclaim }} Util > 90% on {{ $labels.node }} on ns: {{ $labels.namespace }}"
+          namespace: "{{ $labels.namespace }}"
+          pvc: "{{ $labels.persistentvolumeclaim }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на 90% утилизацию запрошенного volume (PVC)"
+#end PVCUtil90Percent
+
+      - alert: PVCUtil99Percent
+        expr: kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes * 100 < 1
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: fatal
+          severity_level: 0
+        annotations:
+          summary: "PVC {{ $labels.persistentvolumeclaim }} Util > 99% on {{ $labels.node }} on ns: {{ $labels.namespace }}"
+          namespace: "{{ $labels.namespace }}"
+          pvc: "{{ $labels.persistentvolumeclaim }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на 99% утилизацию запрошенного volume (PVC)"
+#end PVCUtil99Percent
+
+# Только для Common Kubernetes PD15
+#       - alert: PVErrorPendingPhase
+#         expr: kube_persistentvolume_status_phase{phase=~"Failed|Pending", job="kube-state-metrics"} > 0
+#         for: 0
+#         labels:
+#           notification: KubernetesOpenShift
+#           severity: critical
+#           severity_level: 1
+#         annotations:
+#           summary: "PV {{ $labels.persistentvolume }} in {{ $labels.phase }} phase on ns: {{ $labels.namespace }}"
+#           namespace: "{{ $labels.namespace }}"
+#           pv: "{{ $labels.persistentvolume }}"
+#           monitor: "{{ $labels.monitor }}"
+#           cluster: "{{ $labels.cluster }}"
+#           #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+#           alert_description: "Данный алерт указывает на ошибку или задержку volume (pv)"
+# #end PVErrorPendingPhase
+
+  - name: EtcdKubernetesOpenShift
+    rules:
+      - alert: EtcdNoLeader
+        expr: etcd_server_has_leader == 0
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: fatal
+          severity_level: 0
+        annotations:
+          summary: "Etcd has no leader pod:{{ $labels.pod }} ns:{{ $labels.namespace }} instance:{{ $labels.instance }}"
+          namespace: "{{ $labels.namespace }}"
+          pod: "{{ $labels.pod }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на отсутствие мастера (лидера) в кластере etcd"
+#end EtcdNoLeader
+
+      - alert: EtcdHighNumberOfLeaderChanges
+        expr: increase(etcd_server_leader_changes_seen_total[10m]) > 2
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "Etcd high leader changes rate no leader pod:{{ $labels.pod }} ns:{{ $labels.namespace }} instance:{{ $labels.instance }}"
+          namespace: "{{ $labels.namespace }}"
+          pod: "{{ $labels.pod }}"
+          sercive: "{{ $labels.service }}"
+          instance: "{{ $labels.instance }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на смену мастера (лидера) в кластере etcd"
+#end EtcdHighNumberOfLeaderChanges
+  
+
+           ##### ВОПРОСЫ ###### 
+
+           
+      # - alert: EtcdHighNumberOfFailedGrpcRequests
+      #   expr: sum(rate(grpc_server_handled_total{grpc_code!="OK"}[1m])) BY (grpc_service, grpc_method) / sum(rate(grpc_server_handled_total[1m])) BY (grpc_service, grpc_method) > 0.01
+      #   for: 2m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: Etcd high number of failed GRPC requests (instance {{ $labels.instance }})
+      #     description: "More than 1% GRPC request failure detected in Etcd\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+
+      # - alert: EtcdHighNumberOfFailedGrpcRequests
+      #   expr: sum(rate(grpc_server_handled_total{grpc_code!="OK"}[1m])) BY (grpc_service, grpc_method) / sum(rate(grpc_server_handled_total[1m])) BY (grpc_service, grpc_method) > 0.05
+      #   for: 2m
+      #   labels:
+      #     severity: critical
+      #   annotations:
+      #     summary: Etcd high number of failed GRPC requests (instance {{ $labels.instance }})
+      #     description: "More than 5% GRPC request failure detected in Etcd\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+
+      # - alert: EtcdGrpcRequestsSlow
+      #   expr: histogram_quantile(0.99, sum(rate(grpc_server_handling_seconds_bucket{grpc_type="unary"}[1m])) by (grpc_service, grpc_method, le)) > 0.15
+      #   for: 2m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: Etcd GRPC requests slow (instance {{ $labels.instance }})
+      #     description: "GRPC requests slowing down, 99th percentile is over 0.15s\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+
+      # - alert: EtcdHighNumberOfFailedHttpRequests
+      #   expr: sum(rate(etcd_http_failed_total[1m])) BY (method) / sum(rate(etcd_http_received_total[1m])) BY (method) > 0.01
+      #   for: 2m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: Etcd high number of failed HTTP requests (instance {{ $labels.instance }})
+      #     description: "More than 1% HTTP failure detected in Etcd\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+
+      # - alert: EtcdHighNumberOfFailedHttpRequests
+      #   expr: sum(rate(etcd_http_failed_total[1m])) BY (method) / sum(rate(etcd_http_received_total[1m])) BY (method) > 0.05
+      #   for: 2m
+      #   labels:
+      #     severity: critical
+      #   annotations:
+      #     summary: Etcd high number of failed HTTP requests (instance {{ $labels.instance }})
+      #     description: "More than 5% HTTP failure detected in Etcd\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+
+      # - alert: EtcdHttpRequestsSlow
+      #   expr: histogram_quantile(0.99, rate(etcd_http_successful_duration_seconds_bucket[1m])) > 0.15
+      #   for: 2m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: Etcd HTTP requests slow (instance {{ $labels.instance }})
+      #     description: "HTTP requests slowing down, 99th percentile is over 0.15s\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+        
+      - alert: EtcdMemberCommunicationSlow
+        expr: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[1m])) > 0.15
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Etcd member communication slow (instance {{ $labels.instance }})
+          description: "Etcd member communication slowing down, 99th percentile is over 0.15s\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      # - alert: EtcdHighNumberOfFailedProposals
+      #   expr: increase(etcd_server_proposals_failed_total[1h]) > 5
+      #   for: 2m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: Etcd high number of failed proposals (instance {{ $labels.instance }})
+      #     description: "Etcd server got more than 5 failed proposals past hour\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+   
+   # пока инфра говно, не включаем
+    #   - alert: EtcdHighFsyncDurations
+    #     expr: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket[1m])) > 0.5
+    #     for: 2m
+    #     labels:
+    #       severity: warning
+    #     annotations:
+    #       summary: Etcd high fsync durations (instance {{ $labels.instance }})
+    #       description: "Etcd WAL fsync duration increasing, 99th percentile is over 0.5s\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+    #   - alert: EtcdHighCommitDurations
+    #     expr: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket[1m])) > 0.25
+    #     for: 2m
+    #     labels:
+    #       severity: warning
+    #     annotations:
+    #       summary: Etcd high commit durations (instance {{ $labels.instance }})
+    #       description: "Etcd commit duration increasing, 99th percentile is over 0.25s\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+    # ##### ###### ######
+
+  # - name: IstioKubernetesOpenShift
+    # rules:
+
+     ##### ВОПРОСЫ ######
+      # Алерт на недоступность реплики? by design 
+      # - alert: IstioKubernetesGatewayAvailabilityDrop
+      #   expr: min(kube_deployment_status_replicas_available{deployment="istio-ingressgateway", namespace="istio-system"}) without (instance, pod) < 2
+      #   for: 1m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: Istio Kubernetes gateway availability drop (instance {{ $labels.instance }})
+      #     description: "Gateway pods have dropped. Inbound traffic will likely be affected.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+      # Отсутствие запросов на собстввенный self-monitoring port? 
+      # - alert: IstioMixerPrometheusDispatchesLow
+      #   expr: sum(rate(mixer_runtime_dispatches_total{adapter=~"prometheus"}[1m])) < 180
+      #   for: 1m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: Istio Mixer Prometheus dispatches low (instance {{ $labels.instance }})
+      #     description: "Number of Mixer dispatches to Prometheus is too low. Istio metrics might not be being exported properly.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+      # Что является высоким latency? Нужен порог предоставленный производством
+      # - alert: IstioHighRequestLatency
+      #   expr: rate(istio_request_duration_milliseconds_sum[1m]) / rate(istio_request_duration_milliseconds_count[1m]) > 0.1
+      #   for: 1m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: Istio high request latency (instance {{ $labels.instance }})
+      #     description: "Istio average requests execution is longer than 100ms.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+  #  КАКИЕ ЛЕЙБЛЫ НЕОБХОДИМЫ? Уточнить необходимость реакции на эти алерты, уточнить какие labels необходимы и количество ошибок предоставленный производством
+#       - alert: IstioHigh4xxErrorRate
+#         expr: sum(rate(istio_requests_total{reporter="destination", response_code=~"4.*"}[5m])) by (cluster,destination_app,destination_principal,destination_service,destination_service_name,destination_service_namespace,destination_version,destination_workload,destination_workload_namespace,instance,maistra_control_plane,namespace,pod,release,reporter,request_protocol,response_code,response_flags,security_istio_io_tlsMode,source_app,source_principal,source_version,source_workload,source_workload_namespace,grpc_response_status) / sum(rate(istio_requests_total{reporter="destination"}[5m])) by (cluster,destination_app,destination_principal,destination_service,destination_service_name,destination_service_namespace,destination_version,destination_workload,destination_workload_namespace,instance,maistra_control_plane,namespace,pod,release,reporter,request_protocol,response_code,response_flags,security_istio_io_tlsMode,source_app,source_principal,source_version,source_workload,source_workload_namespace,grpc_response_status) * 100 > 5
+#         for: 1m
+#         labels:
+#           notification: KubernetesOpenShift
+#           severity: critical
+#           severity_level: 1
+#         annotations:
+#           summary: "High HTTP 4xx responses in Istio (> 5%). POD: {{ $labels.pod }} NS: {{ $labels.namespace }} http code: {{ $labels.response_code }}"
+#           cluster: {{ $labels.cluster }}
+#           namespace: {{ $labels.namespace }}
+#           pod: {{ $labels.pod }}
+#           instance: {{ $labels.instance }}
+#           request_protocol: {{ $labels.request_protocol }}
+#           response_code: {{ $labels.response_code }}
+#           destination_app: {{ $labels.destination_app }}
+#           destination_principal: {{ $labels.destination_principal }}
+#           destination_service: {{ $labels.destination_service }}
+#           destination_service_name: {{ $labels.destination_service_name }}
+#           destination_service_namespace: {{ $labels.destination_service_namespace }}
+#           destination_version: {{ $labels.destination_version }}
+#           destination_workload: {{ $labels.destination_workload }}
+#           destination_workload_namespace: {{ $labels.destination_workload_namespace }}
+#           source_app: {{ $labels.source_app }}
+#           source_principal: {{ $labels.source_principal }}
+#           source_version: {{ $labels.source_version }}
+#           source_workload: {{ $labels.source_workload }}
+#           source_workload_namespace: {{ $labels.source_workload_namespace }}
+#           maistra_control_plane: {{ $labels.maistra_control_plane }}
+#           release: {{ $labels.release }}
+#           reporter: {{ $labels.reporter }}
+#           response_flags: {{ $labels.response_flags }}
+#           security_istio_io_tlsMode: {{ $labels.security_istio_io_tlsMode }}
+#           #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+#           details: "severity: `WARNING`\nRunBook: [RunBook](https://base.sw.sbc.space/wiki/display/PLTFM/{{ $labels.alertgroup }}_{{ $labels.alertname }})\ncluster: {{ $labels.cluster }}\nnamespace: {{ $labels.namespace }}\npod: {{ $labels.pod }}\ninstance: {{ $labels.instance }}\nrequest_protocol: {{ $labels.request_protocol }}\nresponse_code: {{ $labels.response_code }}\ndestination_app: {{ $labels.destination_app }}\ndestination_principal: {{ $labels.destination_principal }}\ndestination_service: {{ $labels.destination_service }}\ndestination_service_name: {{ $labels.destination_service_name }}\ndestination_service_namespace: {{ $labels.destination_service_namespace }}\ndestination_version: {{ $labels.destination_version }}\ndestination_workload: {{ $labels.destination_workload }}\ndestination_workload_namespace: {{ $labels.destination_workload_namespace }}\nsource_app: {{ $labels.source_app }}\nsource_principal: {{ $labels.source_principal }}\nsource_version: {{ $labels.source_version }}\nsource_workload: {{ $labels.source_workload }}\nsource_workload_namespace: {{ $labels.source_workload_namespace }}\nmaistra_control_plane: {{ $labels.maistra_control_plane }}\nrelease: {{ $labels.release }}\nreporter: {{ $labels.reporter }}\nresponse_flags: {{ $labels.response_flags }}\nsecurity_istio_io_tlsMode: {{ $labels.security_istio_io_tlsMode }}"
+#           alert_description: "Данный алерт указывает на возросшее количество 4хх http кодов ответа (более 5% от общего количества) в istio"
+# #end IstioHigh4xxErrorRate
+
+#  КАКИЕ ЛЕЙБЛЫ НЕОБХОДИМЫ?Уточнить необходимость реакции на эти алерты, уточнить какие labels необходимы и количество ошибок предоставленный производством
+#       - alert: IstioHigh5xxErrorRate
+#         expr: sum(rate(istio_requests_total{reporter="destination", response_code=~"5.*"}[5m])) by (cluster,destination_app,destination_principal,destination_service,destination_service_name,destination_service_namespace,destination_version,destination_workload,destination_workload_namespace,instance,maistra_control_plane,namespace,pod,release,reporter,request_protocol,response_code,response_flags,security_istio_io_tlsMode,source_app,source_principal,source_version,source_workload,source_workload_namespace,grpc_response_status) / sum(rate(istio_requests_total{reporter="destination"}[5m])) by (cluster,destination_app,destination_principal,destination_service,destination_service_name,destination_service_namespace,destination_version,destination_workload,destination_workload_namespace,instance,maistra_control_plane,namespace,pod,release,reporter,request_protocol,response_code,response_flags,security_istio_io_tlsMode,source_app,source_principal,source_version,source_workload,source_workload_namespace,grpc_response_status) * 100 > 5
+#         for: 1m
+#         labels:
+#           notification: KubernetesOpenShift
+#           severity: critical
+#           severity_level: 1
+#         annotations:
+#           summary: "High HTTP 5xx responses in Istio (> 5%). POD: {{ $labels.pod }} NS: {{ $labels.namespace }} http code: {{ $labels.response_code }}"
+#           cluster: {{ $labels.cluster }}
+#           namespace: {{ $labels.namespace }}
+#           pod: {{ $labels.pod }}
+#           instance: {{ $labels.instance }}
+#           request_protocol: {{ $labels.request_protocol }}
+#           response_code: {{ $labels.response_code }}
+#           destination_app: {{ $labels.destination_app }}
+#           destination_principal: {{ $labels.destination_principal }}
+#           destination_service: {{ $labels.destination_service }}
+#           destination_service_name: {{ $labels.destination_service_name }}
+#           destination_service_namespace: {{ $labels.destination_service_namespace }}
+#           destination_version: {{ $labels.destination_version }}
+#           destination_workload: {{ $labels.destination_workload }}
+#           destination_workload_namespace: {{ $labels.destination_workload_namespace }}
+#           source_app: {{ $labels.source_app }}
+#           source_principal: {{ $labels.source_principal }}
+#           source_version: {{ $labels.source_version }}
+#           source_workload: {{ $labels.source_workload }}
+#           source_workload_namespace: {{ $labels.source_workload_namespace }}
+#           maistra_control_plane: {{ $labels.maistra_control_plane }}
+#           release: {{ $labels.release }}
+#           reporter: {{ $labels.reporter }}
+#           response_flags: {{ $labels.response_flags }}
+#           security_istio_io_tlsMode: {{ $labels.security_istio_io_tlsMode }}
+#           #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+#           details: "severity: `WARNING`\nRunBook: [RunBook](https://base.sw.sbc.space/wiki/display/PLTFM/{{ $labels.alertgroup }}_{{ $labels.alertname }})\ncluster: {{ $labels.cluster }}\nnamespace: {{ $labels.namespace }}\npod: {{ $labels.pod }}\ninstance: {{ $labels.instance }}\nrequest_protocol: {{ $labels.request_protocol }}\nresponse_code: {{ $labels.response_code }}\ndestination_app: {{ $labels.destination_app }}\ndestination_principal: {{ $labels.destination_principal }}\ndestination_service: {{ $labels.destination_service }}\ndestination_service_name: {{ $labels.destination_service_name }}\ndestination_service_namespace: {{ $labels.destination_service_namespace }}\ndestination_version: {{ $labels.destination_version }}\ndestination_workload: {{ $labels.destination_workload }}\ndestination_workload_namespace: {{ $labels.destination_workload_namespace }}\nsource_app: {{ $labels.source_app }}\nsource_principal: {{ $labels.source_principal }}\nsource_version: {{ $labels.source_version }}\nsource_workload: {{ $labels.source_workload }}\nsource_workload_namespace: {{ $labels.source_workload_namespace }}\nmaistra_control_plane: {{ $labels.maistra_control_plane }}\nrelease: {{ $labels.release }}\nreporter: {{ $labels.reporter }}\nresponse_flags: {{ $labels.response_flags }}\nsecurity_istio_io_tlsMode: {{ $labels.security_istio_io_tlsMode }}"
+#           alert_description: "Данный алерт указывает на возросшее количество 5хх http кодов ответа (более 5% от общего количества) в istio"
+# #end IstioHigh5xxErrorRate
+
+  # какое значение 99 персентиля необходимо для  генерации алерта? Уточнить необходимость реакции на эти алерты, уточнить какие labels необходимы и количество ошибок предоставленный производством
+  # - alert: IstioLatency99Percentile
+  #   expr: histogram_quantile(0.99, rate(istio_request_duration_seconds_bucket[1m])) > 1
+  #   for: 1m
+  #   labels:
+  #     severity: warning
+  #   annotations:
+  #     summary: Istio latency 99 percentile (instance {{ $labels.instance }})
+  #     description: "Istio 1% slowest requests are longer than 1s.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+
+
+
+ ##### ###### ######
+
+  #  Вопросы по Pilot Нужна отдельная проработка метрик и алертор по Pilot
+  # - alert: IstioPilotDuplicateEntry
+  #   expr: sum(rate(pilot_duplicate_envoy_clusters{}[5m])) > 0
+  #   for: 0m
+  #   labels:
+  #     severity: critical
+  #   annotations:
+  #     summary: Istio Pilot Duplicate Entry (instance {{ $labels.instance }})
+  #     description: "Istio pilot duplicate entry error.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+  - name: PODKubernetesOpenShift
+    rules:
+      - alert: PodNotHealthy
+        expr: min_over_time(sum by (namespace, pod, cluster, monitor) (kube_pod_status_phase{namespace!="openshift-marketplace",phase=~"Unknown|Failed"})) > 0
+        for: 5m
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "POD {{ $labels.pod }} in Failed or Unknow phase"
+          pod: "{{ $labels.pod }}"
+          namespace: "{{ $labels.namespace }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на неработоспособность PODа"
+#end PodNotHealthy
+
+      - alert: PODInPendingPhase
+        expr: min_over_time(sum by (namespace, pod, cluster, monitor) (kube_pod_status_phase{namespace!="openshift-marketplace",phase=~"Pending"})[15m:1m]) > 0
+        for: 5m
+        labels:
+          notification: KubernetesOpenShift
+          severity: critical
+          severity_level: 1
+        annotations:
+          summary: "POD {{ $labels.pod }} in Pending phase"
+          pod: "{{ $labels.pod }}"
+          namespace: "{{ $labels.namespace }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на неработоспособность PODа"
+#end PODInPendingPhase
+
+      - alert: PodCrashLooping
+        expr: increase(kube_pod_container_status_restarts_total[5m]) > 2
+        for: 0
+        labels:
+          notification: KubernetesOpenShift
+          severity: warning
+          severity_level: 2
+        annotations:
+          summary: "POD {{ $labels.pod }} restarted more than 2 times in 5 min"
+          pod: "{{ $labels.pod }}"
+          namespace: "{{ $labels.namespace }}"
+          monitor: "{{ $labels.monitor }}"
+          cluster: "{{ $labels.cluster }}"
+          #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+          alert_description: "Данный алерт указывает на перезапуск PODа более 2 раз за 5 минут"
+#end PodCrashLooping
+
+###### Все что связано с репликами - продумать  
+# обсудить и подумать 
+#         - alert: ReplicasSetMismatch
+#           expr: kube_replicaset_spec_replicas != kube_replicaset_status_ready_replicas
+#           for: 5m
+#           labels:
+#             notification: KubernetesOpenShift
+#             severity: warning
+#             severity_level: 2
+#           annotations:
+#             summary: "ReplicasSet {{ $labels.replicaset }} mismatch"
+#             replicaset: "{{ $labels.replicaset }}"
+#             namespace: "{{ $labels.namespace }}"
+#             monitor: "{{ $labels.monitor }}"
+#             cluster: "{{ $labels.cluster }}"
+#             #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+#             details: "severity: **WARNING**\nRunBook: [RunBook](https://base.sw.sbc.space/wiki/display/PLTFM/{{ $labels.alertgroup }}_{{ $labels.alertname }}\ReplicasSet: {{ $labels.replicaset }})\nEnvironment: {{ $labels.cluster }}\ngrafana: [Grafana](Not ready yet)\nMonitor: {{ $labels.monitor }}\nCluster: {{ $labels.cluster }}"
+#             alert_description: "Данный алерт указывает на несовпадение количества реплик заданных в спецификации ReplicaSet и фактическим количеством"
+# #end ReplicasSetMismatch
+# на продумать
+#         - alert: DeploymentReplicasMismatch
+#           expr: kube_deployment_spec_replicas != kube_deployment_status_replicas_available
+#           for: 5m
+#           labels:
+#             notification: KubernetesOpenShift
+#             severity: warning
+#             severity_level: 2
+#           annotations:
+#             summary: "Deployment replicas {{ $labels.deployment }} mismatch"
+#             deployment: "{{ $labels.deployment }}"
+#             namespace: "{{ $labels.namespace }}"
+#             monitor: "{{ $labels.monitor }}"
+#             cluster: "{{ $labels.cluster }}"
+#             #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+#             details: "severity: **WARNING**\nRunBook: [RunBook](https://base.sw.sbc.space/wiki/display/PLTFM/{{ $labels.alertgroup }}_{{ $labels.alertname }})\nDeployment: {{ $labels.deployment }}\nEnvironment: {{ $labels.cluster }}\ngrafana: [Grafana](Not ready yet)\nMonitor: {{ $labels.monitor }}\nCluster: {{ $labels.cluster }}"
+#             alert_description: "Данный алерт указывает на несовпадение количества реплик заданных в спецификации Deployment и фактическим количеством"
+# #end DeploymentReplicasMismatch
+
+# на изучение
+#         - alert: StatefulsetReplicasMismatch
+#           expr: kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas
+#           for: 5m
+#           labels:
+#             notification: KubernetesOpenShift
+#             severity: warning
+#             severity_level: 2
+#           annotations:
+#             summary: "StatefulSet replicas {{ $labels.statefulset }} mismatch"
+#             statefulset: "{{ $labels.statefulset }}"
+#             namespace: "{{ $labels.namespace }}"
+#             monitor: "{{ $labels.monitor }}"
+#             cluster: "{{ $labels.cluster }}"
+#             #grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.node }}"
+#             details: "severity: **WARNING**\nRunBook: [RunBook](https://base.sw.sbc.space/wiki/display/PLTFM/{{ $labels.alertgroup }}_{{ $labels.alertname }})\nStatefulset: {{ $labels.statefulset }}\nEnvironment: {{ $labels.cluster }}\ngrafana: [Grafana](Not ready yet)\nMonitor: {{ $labels.monitor }}\nCluster: {{ $labels.cluster }}"
+#             alert_description: "Данный алерт указывает на несовпадение количества реплик заданных в спецификации Statefulset и фактическим количеством"
+# #end StatefulsetReplicasMismatch
+

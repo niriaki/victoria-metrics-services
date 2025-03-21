@@ -1,0 +1,13 @@
+[Unit]
+Description=Prometheus kafka exporter
+After=network.target
+
+[Service]
+User={{ user }}
+Group={{ group }}
+Type=simple
+ExecStart={{ dir }}/kafka_exporter/kafka_exporter --kafka.server {{ inventory_hostname }}:9092 --web.telemetry-path=/metrics --web.listen-address=:9308
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

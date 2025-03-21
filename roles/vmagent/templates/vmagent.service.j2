@@ -1,0 +1,21 @@
+[Unit]
+Description=VictoriaMetrics-vmagent
+After=network-online.target
+
+[Service]
+Type=simple
+User={{ user }}
+Group={{ group }}
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart={{ dir }}/vmagent/vmagent-prod \
+  -promscrape.config={{ dir }}/vmagent/prometheus.yml \
+  -remoteWrite.url=http://{{ vminsert }}:8480/insert/0/prometheus \
+  -remoteWrite.tmpDataPath=/vmdata/vmagent-remotewrite-data \
+
+SyslogIdentifier=vmagent
+KillMode=control-group
+Restart=on-failure
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

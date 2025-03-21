@@ -1,0 +1,328 @@
+groups:
+    - name: NodeExporter
+      rules:
+        - alert: CPUUtilizationByMode90Percent
+          expr: (avg by(instance, mode, monitor, job) (rate(node_cpu_seconds_total{mode!~"(idle|iowait)", namespace=""}[2m])) * 100) > 90
+          for: 10m
+          labels:
+            notification: NodeExporter
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "CPU Util by {{ $labels.mode }} > 90% on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "Данный алерт указывает на утилизацию CPU только Linux OS<br><br>Вариации mode:<br>user - потребление программами пространства пользователя<br>system - потребление ресурсов процессора ядром<br>iowait - затраты на ожидание ввода/вывода<br>softirq - ресурсы, потраченные на программные прерывания<br>steal - процессорное время недополученное от гипервизора<br>nice - потребление ресурсов в процентах программами в пространстве пользователя с повышенным приоритетом<br>irq - ресурсы, потраченные на прерывания для работы с аппаратным обеспечением"
+  #end CPUUtilizationByMode90Percent
+  
+        - alert: CPUUtilizationByMode75Percent
+          expr: 90 > (avg by (instance, mode, monitor, job) (rate(node_cpu_seconds_total{mode!~"(idle|iowait)", namespace=""}[2m])) * 100) > 75
+          for: 10m
+          labels:
+            notification: NodeExporter
+            severity: warning
+            severity_level: 2
+          annotations:
+            summary: "CPU Util by {{ $labels.mode }} > 75% on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "Данный алерт указывает на утилизацию CPU только Linux OS<br><br>Вариации mode:<br>user - потребление программами пространства пользователя<br>system - потребление ресурсов процессора ядром<br>iowait - затраты на ожидание ввода/вывода<br>softirq - ресурсы, потраченные на программные прерывания<br>steal - процессорное время недополученное от гипервизора<br>nice - потребление ресурсов в процентах программами в пространстве пользователя с повышенным приоритетом<br>irq - ресурсы, потраченные на прерывания для работы с аппаратным обеспечением"
+  
+  #end CPUUtilizationByMode75Percent
+  
+        - alert: CPUUtilizationIowat30Percent
+          expr: (avg by(instance, mode, monitor, job) (rate(node_cpu_seconds_total{mode="iowait", namespace=""}[2m])) * 100) > 30
+          for: 5m
+          labels:
+            notification: NodeExporter
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "CPU Util by IOWAIT > 30% on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "Данный алерт указывает на утилизацию CPU только Linux OS в рамках iowait - затрат на ожидание ввода/вывода"
+  #end CPUUtilizationIowat30Percent
+  
+        - alert: CPUUtilizationIowat20Percent
+          expr: 30 > (avg by (instance, mode, monitor, job) (rate(node_cpu_seconds_total{mode="iowait", namespace=""}[2m])) * 100) > 20
+          for: 10m
+          labels:
+            notification: NodeExporter
+            severity: warning
+            severity_level: 2
+          annotations:
+            summary: "CPU Util by IOWAIT > 20% on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "Данный алерт указывает на утилизацию CPU только Linux OS в рамках iowait - затрат на ожидание ввода/вывода"
+  #end CPUUtilizationIowat20Percent
+
+        - alert: CPUUtilizationSteal10Percent
+          expr: (sum(irate(node_cpu_seconds_total{mode="steal"}[5m])) by (instance, monitor, job) / count(node_schedstat_timeslices_total) by (instance, monitor, job)) * 100 > 10
+          for: 0
+          labels:
+            notification: InfraMontoring
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "CPU Util by STEAL > 10% on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "Процессорное время недополученное от гипервизора"
+  #end CPUUtilizationSteal10Percent
+
+
+        - alert: MemoryUtiliztion95PercentAndLess512MbOrLess512Mb
+          expr: (node_memory_MemAvailable_bytes{namespace=""} / node_memory_MemTotal_bytes{namespace=""} * 100 - 100 ) * -1 > 95 AND (node_memory_MemAvailable_bytes{namespace=""} < 536870912) OR (node_memory_MemAvailable_bytes{namespace=""} < 536870912)
+          for: 0
+          labels:
+            notification: NodeExporter
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "RAM Util > 95% and RAM FREE < 512Mb on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "Утилизация RAM"
+  #end MemoryUtiliztion95PercentAndLess512Mb
+  
+        # - alert: MemoryUtiliztion90Percent
+        #   expr: (95 > (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 - 100 ) * -1 > 90) and ((node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 - 100 ) * -1 < 95 AND (node_memory_MemAvailable_bytes > 536870912) )
+        #   for: 5m
+        #   labels:
+        #     notification: NodeExporter
+        #     severity: warning
+        #     severity_level: 2
+        #   annotations:
+        #     summary: "RAM Util > 90% on {{ $labels.instance }}"
+        #     instance: "{{ $labels.instance }}"
+        #     monitor: "{{ $labels.monitor }}"
+        #     grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+        #     alert_description: "Утилизация RAM"
+  #end MemoryUtiliztion90Percent
+  
+        - alert: SWAPUtiliztion60Percent
+          expr: (node_memory_SwapFree_bytes{namespace=""} / node_memory_SwapTotal_bytes{namespace=""} * 100 - 100 ) * -1 > 60
+          for: 0
+          labels:
+            notification: NodeExporter
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "SWAP Util > 60% on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "SWAP - файл подкачки. Обычно используется ОС, а также ПО в случае нехватки оперативной памяти. Критично влияет на производительность."
+  #end SWAPUtiliztion60Percent
+  
+        - alert: SWAPUtiliztion30Percent
+          expr: 60 > ( node_memory_SwapFree_bytes{namespace=""} / node_memory_SwapTotal_bytes{namespace=""} * 100 - 100 ) * -1 > 30
+          for: 1m
+          labels:
+            notification: NodeExporter
+            severity: warning
+            severity_level: 2
+          annotations:
+            summary: "SWAP Util > 30% on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "SWAP - файл подкачки. Обычно используется ОС, а также ПО в случае нехватки оперативной памяти. Критично влияет на производительность."
+  #end SWAPUtiliztion30Percent
+  
+        - alert: InodeUtiliztion70Percent
+          expr: (node_filesystem_files_free{namespace=""} / node_filesystem_files{namespace=""} * 100 - 100 ) * -1 > 70
+          for: 0
+          labels:
+            notification: NodeExporter
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "Inodes Util > 70% {{ $labels.mountpoint }} on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            mountpoint: "{{ $labels.mountpoint }}"
+            alert_description: "При максимальной утилизации inodes в точке монтирования в файловой системе невозможно создать новый файл, подключение по сети, записать в файл, etc"
+  #end InodeUtiliztion70Percent
+  
+        - alert: InodeUtiliztion50Percent
+          expr: 70 > (node_filesystem_files_free{namespace=""} / node_filesystem_files{namespace=""} * 100 - 100 ) * -1 > 50
+          for: 0
+          labels:
+            notification: NodeExporter
+            severity: warning
+            severity_level: 2
+          annotations:
+            summary: "Inodes Util > 50% {{ $labels.mountpoint }} on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            mountpoint: "{{ $labels.mountpoint }}"
+            alert_description: "При максимальной утилизации inodes в точке монтирования в файловой системе невозможно создать новый файл, подключение по сети, записать в файл, etc"
+  #end InodeUtiliztion50Percent
+  
+        - alert: MountpointSpaceUtiliztion90PercentAndLess10GB
+          expr: min((node_filesystem_avail_bytes{namespace=""} / node_filesystem_size_bytes{namespace=""} * 100 - 100 ) * -1) by (instance, mountpoint, monitor, job) >= 90 and min(node_filesystem_avail_bytes{namespace=""}) by (instance, mountpoint, monitor, job) <= 10737418240
+          for: 0
+          labels:
+            notification: NodeExporter
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "Free space < 10% and < 10Gb {{ $labels.mountpoint }} on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            mountpoint: "{{ $labels.mountpoint }}"
+            alert_description: "Утилизация дискового пространства в разрезе точки монтирования"
+  #end MountpointSpaceUtiliztion90PercentAndLess10GB
+  
+        - alert: MountpointSpaceUtiliztion85Percent
+          expr: min((node_filesystem_avail_bytes{namespace=""} / node_filesystem_size_bytes{namespace=""} * 100 - 100 ) * -1) by (instance, mountpoint, monitor, job) > 85 and min(node_filesystem_avail_bytes{namespace=""}) by (instance, mountpoint, monitor, job) > 10737418240
+          for: 5m
+          labels:
+            notification: NodeExporter
+            severity: warning
+            severity_level: 2
+          annotations:
+            summary: "Free space < 15% {{ $labels.mountpoint }} on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            mountpoint: "{{ $labels.mountpoint }}"
+            job: "{{ $labels.job }}"
+            alert_description: "Утилизация дискового пространства в разрезе точки монтирования"
+  #end MountpointSpaceUtiliztion85Percent
+  
+        - alert: PullNodeExporterStatus
+          expr: up{job="node", namespace=""} == 0
+          for: 0
+          labels:
+            notification: NodeExporter
+            severity: warning
+            severity_level: 2
+          annotations:
+            summary: "NodeExpoter unreachable on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "Данный алерт имеет значение 1 - успешный сбор метрик и 0 - неуспешный сбор метрик с instance"
+  #end PullNodeExporterStatus
+  
+        - alert: LoadAverage590Percent
+          expr: max(node_load5) by (instance, monitor, job) / count(node_schedstat_timeslices_total{namespace=""}) by (instance, monitor, job) * 100 > 90
+          for: 2m
+          labels:
+            notification: NodeExporter
+            severity: critical
+            severity_level: 1
+          annotations:
+            summary: "Load Average > 90% by CPU count on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "Данный алерт показывает метрику load average в разрезе количества CPU. Так как Load Average - это комплексная метрика средней загрузки системы (CPU, RAM, Storage, Network)<br>Бывают случаи, когда CPU не утилизирован, а дисковая подсистема утилизирована на 100% и Load Average покажет эту нагрузку"
+  #end LoadAverage590Percent
+  
+        - alert: LoadAverage580Percent
+          expr: 80 < max(node_load5) by (instance, monitor, job) / count(node_schedstat_timeslices_total{namespace=""}) by (instance, monitor, job) * 100 < 90
+          for: 10m
+          labels:
+            notification: NodeExporter
+            severity: warning
+            severity_level: 2
+          annotations:
+            summary: "Load Average > 80% by CPU count on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "Данный алерт показывает метрику load average в разрезе количества CPU. Так как Load Average - это комплексная метрика средней загрузки системы (CPU, RAM, Storage, Network)<br>Бывают случаи, когда CPU не утилизирован, а дисковая подсистема утилизирована на 100% и Load Average покажет эту нагрузку"
+  #end LoadAverage580Percent
+  
+  #       - alert: NodeDeviceCountDecreased
+  #         expr: ( count(node_disk_io_now{namespace="", monitor!="kolla"}) by (instance, monitor, job) - count(node_disk_io_now{namespace="", monitor!="kolla"} offset 5m) by (instance, monitor, job) ) < 0
+  #         for: 1m
+  #         labels:
+  #           notification: NodeExporter
+  #           severity: critical
+  #           severity_level: 1
+  #         annotations:
+  #           summary: "Disk count decreased on on {{ $labels.instance }}"
+  #           instance: "{{ $labels.instance }}"
+  #           monitor: "{{ $labels.monitor }}"
+  #           grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+  #           details: "severity: `CRITICAL`\nRunBook: [RunBook](https://base.sw.sbc.space/wiki/display/PLTFM/{{ $labels.alertgroup }}_{{ $labels.alertname }})\ngrafana: [Grafana](/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }})\ninstance: {{ $labels.instance }}\nJob: {{ $labels.job }}\nMonitor: {{ $labels.monitor }}"
+  #           alert_description: "Данный алерт отображает уменьшение дисков выделенных для виртуальной машины"
+  # #end NodeDeviceCountDecreased
+  
+        - alert: NodeRestarted
+          expr: (node_time_seconds{namespace=""} - node_boot_time_seconds{namespace=""}) < 300
+          for: 0
+          labels:
+            notification: NodeExporter
+            severity: warning
+            severity_level: 2
+          annotations:
+            summary: "{{ $labels.instance }} was restarted"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "Данные алерт отображает факт перезагрузки ОС"
+  #end NodeRestarted
+  
+        - alert: HostClockNotSynchronising
+          expr: min_over_time(node_timex_sync_status{namespace=""}[1m]) == 0 and node_timex_maxerror_seconds{namespace=""} >= 16
+          for: 0
+          labels:
+            notification: NodeExporter
+            severity: warning
+            severity_level: 2
+          annotations:
+            summary: "Host clock not synchronising on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "Данный алерт отображает статус синхронизации времени в ОС"
+  #end HostClockNotSynchronising
+  
+        - alert: SSSDServiceNotRunning
+          expr: node_systemd_unit_state{state="active", name="sssd.service", namespace=""} == 0
+          for: 0
+          labels:
+            notification: NodeExporter
+            severity: warning
+            severity_level: 2
+          annotations:
+            summary: "{{ $labels.name }} not running on {{ $labels.instance }}"
+            instance: "{{ $labels.instance }}"
+            monitor: "{{ $labels.monitor }}"
+            name: "{{ $labels.name }}"
+            job: "{{ $labels.job }}"
+            grafana: "/d/NodeExporter/node-exporter-full?var-monitor={{ $labels.monitor }}&var-job=node&var-instance={{ $labels.instance }}"
+            alert_description: "sssd сервис отвечает за авторизацию на виртуальной машине через ipa"
+  #end SSSDServiceNotRunning

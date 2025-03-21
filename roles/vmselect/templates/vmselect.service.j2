@@ -1,0 +1,21 @@
+[Unit]
+Description=VictoriaMetrics-select
+After=network.target
+
+[Service]
+Type=simple
+User={{ user }}
+Group={{ group }}
+StartLimitBurst=5
+StartLimitInterval=0
+Restart=on-failure
+RestartSec=1    
+ExecStart={{ dir }}/vmselect/vmselect-prod -search.maxPointsPerTimeseries=1000000000 -search.maxQueryDuration=120s -cacheDataPath=/vmdata/victoria-cache -memory.allowedPercent=60 -storageNode={{ vmstorage }}:8401 -selectNode={{ vmselect }}:8141
+ExecStop=/bin/kill -s SIGTERM $MAINPID
+
+PrivateTmp=yes
+ProtectHome=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

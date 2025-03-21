@@ -1,0 +1,14 @@
+[Install]
+WantedBy=default.target
+
+[Unit]
+Description= prometheus-zookeeper
+After=network.target
+
+[Service]
+Type=simple
+ExecStart= {{ dir }}/zookeeper_exporter/zookeeper_exporter -zookeeper 127.0.0.1:2181 -bind-addr :9143
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

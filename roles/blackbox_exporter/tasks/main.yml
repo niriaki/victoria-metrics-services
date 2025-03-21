@@ -1,0 +1,50 @@
+---
+# tasks file for blackbox_exporter
+- name: Stop service blackbox_exporter, if started
+  ansible.builtin.systemd_service:
+    name: blackbox_exporter.service
+    state: stopped
+  ignore_errors: true
+
+- name: Create configs directory
+  file:
+    path: "{{ dir }}/blackbox_exporter"
+    state: directory
+
+- name: Copy conf for blackbox_exporter
+  copy:
+    src: "blackbox.yml"
+    dest: "{{dir}}/blackbox_exporter"
+    force: yes
+
+- name: Copy service for blackbox_exporter
+  copy:
+    src: "blackbox_exporter"
+    dest: "{{ dir }}/blackbox_exporter"
+    force: yes
+    mode: 0755
+
+- name: Copy service file for blackbox_exporter
+  ansible.builtin.template:
+    src: "blackbox_exporter.service.j2"
+    dest: "{{ sysdir }}/blackbox_exporter.service"
+    force: yes
+
+- name: Add the user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+
+- name: Change file ownership and group
+  ansible.builtin.file:
+    path: "{{ dir }}/blackbox_exporter"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    recurse: true
+
+- name: Run service blackbox_exporter
+  ansible.builtin.systemd_service:
+    name: blackbox_exporter.service
+    state: started
+    daemon_reload: true
+    enabled: true

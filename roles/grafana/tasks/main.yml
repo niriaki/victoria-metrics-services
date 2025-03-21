@@ -1,0 +1,28 @@
+---
+# tasks file for grafana-server
+- name: Stop service grafana-server, if started
+  ansible.builtin.systemd_service:
+    name: grafana-server.service
+    state: stopped
+  ignore_errors: true
+
+- name: Create configs directory
+  file:
+    path: "{{ dir }}/grafana-server/"
+    state: directory
+
+- name: Download a grafana-server
+  ansible.builtin.get_url:
+    url: "{{ grafana-server_url }}"
+    dest: "{{ dir }}/grafana-server"
+
+- name: Install package grafana-server
+  shell:
+    cmd: "yum install -y  {{ dir }}/grafana-server/grafana-11.1.0-1.x86_64.rpm"
+
+- name: Run service grafana-server
+  ansible.builtin.systemd_service:
+    name: grafana-server.service
+    state: started
+    daemon_reload: true
+    enabled: true
